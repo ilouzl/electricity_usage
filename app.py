@@ -1,8 +1,9 @@
 import gradio as gr
 import pandas as pd
-from plans import provider_plans
-from parsers import *
+import plotly.express as px
 
+from parsers import *
+from plans import provider_plans
 
 default_rate = 0.6
 
@@ -30,8 +31,6 @@ def run_analysis(inp):
     df['day_name'] = df.index.day_name()
 
     total_consumption = df.consumption.sum()
-    print("Total consumption: %d KW"%(total_consumption))
-    print('Cost: %.2f NIS' %(total_consumption * default_rate))
     discounts = []
     for provider in provider_plans:
         print(provider['provider'])
@@ -40,7 +39,12 @@ def run_analysis(inp):
             discounts.append({"Provider": provider['provider'], "Plan Name": plan['name'], "Discount [NIS]": d})
 
     savings_df = pd.DataFrame(discounts).sort_values(by='Discount [NIS]', ascending=False).reset_index(drop=True)
-    return savings_df
+
+    df['ts'] = df.index
+    fig = px.line(df, x="ts", y='consumption')
+    df.drop(columns=['day_name'], inplace=True)
+    print(df.head())
+    return savings_df, fig, "Total consumption: %d KW, Cost: %.2f NIS"%(total_consumption, total_consumption * default_rate)
 
 
 
@@ -50,9 +54,11 @@ with gr.Blocks(title="Utility Saving Analyzer", css="style.css") as app:
         upload_report_btn = gr.UploadButton("Upload Consumption Report", file_types=['xls', 'xlsx'], file_count='single')
         power_price_txt = gr.Textbox(label="Power Price NIS/kW", value=str(default_rate))
 
+    total_consumption_txt = gr.Textbox(label="Total")
+    consumption_plot = gr.Plot(label="Consumption Plot")
     image_stats = gr.DataFrame(label="Discounts")
     
-    upload_report_btn.upload(run_analysis, inputs=upload_report_btn, outputs=[image_stats])
+    upload_report_btn.upload(run_analysis, inputs=upload_report_btn, outputs=[image_stats, consumption_plot, total_consumption_txt])
     power_price_txt.change(power_price_txt_change, inputs=power_price_txt)
     
 
