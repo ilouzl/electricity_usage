@@ -6,6 +6,11 @@ from parsers import *
 
 default_rate = 0.6
 
+def power_price_txt_change(val):
+    global default_rate
+    default_rate = float(val)
+    print(default_rate)
+
 def apply_plan_discount(df, plan):
     total_consumption = df.consumption.sum()
     discunted_consumption = 0
@@ -37,10 +42,18 @@ def run_analysis(inp):
     savings_df = pd.DataFrame(discounts).sort_values(by='Discount [NIS]', ascending=False).reset_index(drop=True)
     return savings_df
 
-def main():
 
-    app = gr.Interface(fn=run_analysis, inputs="file", outputs="dataframe")
-    app.queue(concurrency_count=2).launch()
 
-if __name__ == "__main__":
-    main()
+with gr.Blocks(title="Utility Saving Analyzer", css="style.css") as app:
+    gr.Markdown("## Data Source")
+    with gr.Row():
+        upload_report_btn = gr.UploadButton("Upload Consumption Report", file_types=['xls', 'xlsx'], file_count='single')
+        power_price_txt = gr.Textbox(label="Power Price NIS/kW", value=str(default_rate))
+
+    image_stats = gr.DataFrame(label="Discounts")
+    
+    upload_report_btn.upload(run_analysis, inputs=upload_report_btn, outputs=[image_stats])
+    power_price_txt.change(power_price_txt_change, inputs=power_price_txt)
+    
+
+app.queue(concurrency_count=2).launch()
