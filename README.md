@@ -1,8 +1,8 @@
 ---
 title: UtilityProvidersComparison
-emoji: 🏃
-colorFrom: pink
-colorTo: purple
+emoji: 🔌💰
+colorFrom: yellow
+colorTo: red
 sdk: gradio
 sdk_version: 3.41.2
 app_file: app.py
