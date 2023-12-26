@@ -2,7 +2,7 @@ import gradio as gr
 import pandas as pd
 import plotly.express as px
 
-from parsers import *
+from parsers import parse_report
 from plans import provider_plans
 
 default_rate = 0.6
@@ -27,7 +27,7 @@ def apply_plan_discount(df, plan):
 
 
 def run_analysis(inp):
-    df = read_pazgaz_report(inp.name)
+    df = parse_report(inp.name)
     df['day_name'] = df.index.day_name()
 
     total_consumption = df.consumption.sum()
